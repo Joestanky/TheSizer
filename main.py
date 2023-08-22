@@ -10,22 +10,23 @@ SCREEN_WIDTH = 1200
 SCREEN_HEIGHT = 800
 
 pygame.init()
+pygame.display.set_caption('TheSizer')
 running = True
 screen = pygame.display.set_mode((1200,800), pygame.RESIZABLE)
 clock = pygame.time.Clock()
 
 
+#Theme
+main_theme = pygame_menu.themes.THEME_SOLARIZED
+main_theme.title_bar_style = pygame_menu.widgets.MENUBAR_STYLE_UNDERLINE_TITLE
 
 #Menu to open project
 main_menu = pygame_menu.Menu(
 	height=100,
-    theme=pygame_menu.themes.THEME_BLUE,
-    title='Welcome',
+    theme=main_theme,
+    title='Welcome to TheSizer',
     width=100
-   )
-
-
-
+    )
 
 
 def on_resize() -> None:
@@ -46,12 +47,41 @@ project = None # Initially set to None so it can be checked if it is
 # set to an actual value of the Menu Class and if it's the current
 # menu open, running project_update if true
 
-volume_slider = None
-volume_text = None
+volume_slider = None # Used to edit volume
+volume_text = None # shows sliders value
 
-project_open = False
+volume_slider = Slider(screen,
+	SCREEN_WIDTH - 610,
+	48,
+	520,
+	20,
+	min=0,
+	max=40,
+	step=1,
+	initial=30)
+
+volume_text = TextBox(screen,
+	SCREEN_WIDTH-70,
+	34,
+	60,
+	48,
+	fontSize=30,
+	borderThickness=0,
+	colour=(41,41,34),
+	textColour=(204, 201, 195)
+	)
+
+volume_slider._hidden = True
+volume_text._hidden = True
+
+project_open = False # used to check if the 
+# project is currently open, and closing stuff
+# if it is
 
 
+# opens up a new menu with the project name
+# from earlier and (so far) activates
+# volume slider and text when the projects open
 def open_new_project():
 	global project_name, project, SCREEN_WIDTH, SCREEN_HEIGHT
 	global volume_slider, volume_text
@@ -64,27 +94,16 @@ def open_new_project():
 		SCREEN_HEIGHT, 
 		theme=pygame_menu.themes.THEME_DARK
 		)
-
-
-	volume_slider = Slider(screen, 100, 100, 800, 40, min=0, max=99, step=1)
-	volume_text = TextBox(screen, 475, 200, 50, 50, fontSize=30)
-	volume_text.disable()
+	
+	volume_text.disable() #disables interaction
+	volume_slider.setValue(30) #sets to default
+	#sets the text to the value
 	volume_text.setText(volume_slider.getValue())
 
-	"""project.add.range_slider(
-		'Volume',
-		default_value=35,
-		range_values=(0,40),
-		rangeslider_id='volsli', # Used to ID this specific range_slider below
-		increment=5,
-		range_width=80,
-		range_text_value_font_height=.5,
-		accept_kwargs=True,
-		font_size=28
-		)"""
-
-	# Uses ID to set position to the topright
-	#project.get_widget("volsli").set_position(SCREEN_WIDTH-300, 120)
+	#when hidden, the slider can't be changed or seen
+	volume_slider._hidden = False #is True when
+	#-project is closed 
+	volume_text._hidden = False
 
 	main_menu._open(project)
 
@@ -92,7 +111,7 @@ def project_update(): #used to update the projects items (buttons, labels, etc)
 	global project, project_open
 	global volume_slider, volume_text
 
-	if project_open:
+	if project_open: # this constantly sets the text
 		volume_text.setText(volume_slider.getValue())
 
 def project_close():
@@ -100,13 +119,13 @@ def project_close():
 
 	if project_open:
 		print('Closed Project')
-		volume_slider = None
-		volume_text = None
+		#basically closes them
+		volume_slider._hidden = True
+		volume_text._hidden = True
 		project_open = False
 
 
-
-#, align=pygame_menu.locals.ALIGN_LEFT
+# Main Menu Set Up
 name_input = main_menu.add.text_input(
 	'Name: ',
 	default='username',
@@ -124,6 +143,7 @@ main_menu.add.button(
 	align=pygame_menu.locals.ALIGN_LEFT)
 
 
+#Sets the resized menu and screen
 on_resize()
 
 while running:
@@ -138,9 +158,9 @@ while running:
 			screen = pygame.display.set_mode((event.w, event.h), pygame.RESIZABLE)
 			
 			on_resize()
-			print(SCREEN_WIDTH, SCREEN_HEIGHT)
 
 	screen.fill((25, 0, 50))
+
 	if isinstance(project, pygame_menu.Menu) and main_menu.get_current() == project:
 		project_update()
 		project_open = True
