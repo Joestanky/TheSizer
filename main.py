@@ -5,6 +5,8 @@ import pygame_menu
 import pygame_widgets
 from pygame_widgets.slider import Slider
 from pygame_widgets.textbox import TextBox
+from pygame_widgets.button import ButtonArray
+from pygame_widgets.switch import SwitchArray
 
 SCREEN_WIDTH = 1200
 SCREEN_HEIGHT = 800
@@ -27,6 +29,8 @@ main_menu = pygame_menu.Menu(
     title='Welcome to TheSizer',
     width=100
     )
+
+
 
 
 def on_resize() -> None:
@@ -58,7 +62,8 @@ volume_slider = Slider(screen,
 	min=0,
 	max=40,
 	step=1,
-	initial=30)
+	initial=30
+	)
 
 volume_text = TextBox(screen,
 	SCREEN_WIDTH-70,
@@ -71,8 +76,28 @@ volume_text = TextBox(screen,
 	textColour=(204, 201, 195)
 	)
 
+
+#Piano Roll
+piano_roll_size = (8,12)
+notes = []
+for i in range(piano_roll_size[0]):
+	for j in range(piano_roll_size[1]):
+		notes.append('z')
+
+
+piano_roll = SwitchArray(screen,
+	200,
+	400,
+	(SCREEN_WIDTH-250),(SCREEN_HEIGHT-500),
+	(piano_roll_size[0],piano_roll_size[1]),
+	border = 2,
+	colour=(10,255,11),
+	onColours = (200,50,0)
+	)
+
 volume_slider._hidden = True
 volume_text._hidden = True
+piano_roll.hide()
 
 project_open = False # used to check if the 
 # project is currently open, and closing stuff
@@ -84,7 +109,7 @@ project_open = False # used to check if the
 # volume slider and text when the projects open
 def open_new_project():
 	global project_name, project, SCREEN_WIDTH, SCREEN_HEIGHT
-	global volume_slider, volume_text
+	global volume_slider, volume_text, piano_roll
 
 	project_name = name_input.get_value()
 
@@ -104,24 +129,41 @@ def open_new_project():
 	volume_slider._hidden = False #is True when
 	#-project is closed 
 	volume_text._hidden = False
+	piano_roll.show()
+
+
 
 	main_menu._open(project)
 
+#Reason I need this is so that maybe the playhead can play by x
+#in time frames and the y's represent the value(actual note)
+def Index_To_Tuple(index, constraints):
+	col, row = constraints
+	x = index//row
+	y = index - (row * x)
+	return (x,y)
+
+print(Index_To_Tuple(12, piano_roll_size))
+
 def project_update(): #used to update the projects items (buttons, labels, etc)
 	global project, project_open
-	global volume_slider, volume_text
+	global volume_slider, volume_text, piano_roll
+	global notes
 
 	if project_open: # this constantly sets the text
 		volume_text.setText(volume_slider.getValue())
 
+
+
 def project_close():
-	global volume_slider, volume_text, project_open
+	global volume_slider, volume_text, project_open, piano_roll
 
 	if project_open:
 		print('Closed Project')
 		#basically closes them
 		volume_slider._hidden = True
 		volume_text._hidden = True
+		piano_roll.hide()
 		project_open = False
 
 
